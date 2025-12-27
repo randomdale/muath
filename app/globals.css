@@ -112,3 +112,9 @@ p{ margin: 0 0 14px 0; color: var(--muted); }
   .mobileMenu { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
   .mobileMenu a { text-decoration: none; color: inherit; font-size: 18px; }
 }
+.divider {
+  border: none;
+  border-top: 2px solid #c9b3b3; /* tweak color */
+  margin: 24px 0;
+  width: 100%;
+}
