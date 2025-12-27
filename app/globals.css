@@ -84,3 +84,31 @@ p{ margin: 0 0 14px 0; color: var(--muted); }
     display: block;
   }
 }
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 260px;
+  padding: 24px;
+  border-right: 1px solid #eee;
+}
+
+.main {
+  flex: 1;
+  padding: 40px;
+}
+
+.mobileNav { display: none; }
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { padding: 24px; }
+  .mobileNav { display: block; padding: 16px; }
+  .mobileTop { display: flex; justify-content: space-between; align-items: center; }
+  .brand { font-weight: 700; font-size: 22px; text-decoration: none; color: inherit; }
+  .menuBtn { padding: 10px 14px; border-radius: 10px; border: 1px solid #ddd; background: white; }
+  .mobileMenu { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .mobileMenu a { text-decoration: none; color: inherit; font-size: 18px; }
+}
