@@ -9,7 +9,7 @@ export default function MobileNav() {
   return (
     <div className="mobileNav">
       <div className="mobileTop">
-        <Link href="/" className="brand">Muath</Link>
+        <Link href="/" className="brand">Muath's Blog</Link>
         <button className="menuBtn" onClick={() => setOpen(!open)}>
           ☰ Menu
         </button>

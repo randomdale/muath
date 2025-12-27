@@ -114,7 +114,24 @@ p{ margin: 0 0 14px 0; color: var(--muted); }
 }
 .divider {
   border: none;
-  border-top: 2px solid #c9b3b3; /* tweak color */
+  border-top: 1px solid #000;
   margin: 24px 0;
-  width: 100%;
+}
+body {
+  background: #f5f2ec; /* bone */
+  color: #111;
+}
+.menuBtn {
+  color: #000;
+  background: transparent;
+  border: 1px solid #000;
+}
+
+.menuBtn:focus,
+.menuBtn:active {
+  color: #000;
+}
+.brand {
+  color: #000;
+  font-weight: 600;
 }
