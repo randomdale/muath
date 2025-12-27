@@ -6,25 +6,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <MobileNav />
-<div className="shell">
-  <aside className="sidebar"> ... </aside>
-  <main className="main">{children}</main>
-</div>
-        <div className="shell">
-          <aside
-  style={{
-    width: 260,
-    padding: 24,
-    borderRight: "1px solid #eee",
-    display: "none",
-  }}
-  className="sidebar"
->
+        {/* Mobile */}
+        <div className="mobileOnly">
+          <MobileNav />
+          <main className="mobileMain">{children}</main>
+        </div>
+
+        {/* Desktop */}
+        <div className="desktopOnly layout">
+          <aside className="sidebar">
+            <div className="sidebarBrand">
+              <Link href="/" className="brand">
+                Muath&apos;s blog
+              </Link>
+            </div>
+
+            <nav className="sidebarNav">
+              <Link href="/" className="navLink">Home</Link>
+              <Link href="/writing" className="navLink">Writing</Link>
+              <Link href="/reading" className="navLink">Reading</Link>
+            </nav>
           </aside>
-          <main className="main">
-            <div className="content">{children}</div>
-          </main>
+
+          <main className="content">{children}</main>
         </div>
       </body>
     </html>
