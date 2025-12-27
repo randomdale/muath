@@ -6,16 +6,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <div className="shell">
-          <aside className="sidebar">
-            <h2 className="brand">Muath</h2>
-            <nav className="nav">
-              <Link href="/">Home</Link>
-              <Link href="/writing">Writing</Link>
-              <Link href="/reading">Reading</Link>
-              <Link href="/about">About</Link>
-            </nav>
+          <aside
+  style={{
+    width: 260,
+    padding: 24,
+    borderRight: "1px solid #eee",
+    display: "none",
+  }}
+  className="sidebar"
+>
           </aside>
-
           <main className="main">
             <div className="content">{children}</div>
           </main>

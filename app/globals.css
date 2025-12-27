@@ -79,3 +79,8 @@ p{ margin: 0 0 14px 0; color: var(--muted); }
   color: var(--muted);
   font-size: 14px;
 }
+@media (min-width: 768px) {
+  .sidebar {
+    display: block;
+  }
+}
