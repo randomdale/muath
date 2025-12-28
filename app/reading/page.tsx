@@ -4,7 +4,7 @@ export default function ReadingPage() {
   return (
     <div style={{ maxWidth: 900, margin: "40px auto", padding: "0 16px" }}>
       <h1 style={{ marginBottom: 8 }}>Reading</h1>
-      <p style={{ marginTop: 0, opacity: 0.8 }}>What I’m reading right now.</p>
+      <p style={{ marginTop: 0, opacity: 0.8 }}>Consooming...</p>
 
       <div
         style={{
@@ -57,7 +57,7 @@ export default function ReadingPage() {
           </div>
 
           <p style={{ marginTop: 12, opacity: 0.9, maxWidth: 420 }}>
-            Notes and highlights will probably land in Writing later.
+            Notes and highlights will probably land in the Writing page later.
           </p>
         </div>
       </div>
