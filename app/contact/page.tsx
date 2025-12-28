@@ -1,5 +1,6 @@
 import { sendEmail } from "./actions";
 import SubmitButton from "./SubmitButton";
+export const dynamic = "force-dynamic";
 
 export default function Contact({
   searchParams,

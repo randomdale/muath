@@ -17,10 +17,11 @@ export default function MobileNav() {
 
       {open && (
         <div className="mobileMenu">
-          <Link href="/" onClick={() => setOpen(false)}>Home</Link>
-          <Link href="/writing" onClick={() => setOpen(false)}>Writing</Link>
-          <Link href="/reading" onClick={() => setOpen(false)}>Reading</Link>
-        </div>
+  <Link href="/" onClick={() => setOpen(false)}>Home</Link>
+  <Link href="/writing" onClick={() => setOpen(false)}>Writing</Link>
+  <Link href="/reading" onClick={() => setOpen(false)}>Reading</Link>
+  <Link href="/contact" onClick={() => setOpen(false)}>Contact</Link>
+</div>
       )}
     </div>
   );
