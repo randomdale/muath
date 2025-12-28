@@ -10,24 +10,27 @@ export default function Contact({
   const sent = searchParams?.sent === "1";
   const error = searchParams?.error === "1";
 
-  return (
-    <div style={{ maxWidth: 520, margin: "40px auto" }}>
-      {sent && <p>Sent.</p>}
-      {error && <p>Invalid email or message.</p>}
+return (
+  <div style={{ maxWidth: 520, margin: "40px auto" }}>
+    <h1>Contact</h1>
+    <p>Shoot me an email and I’ll get back to you.</p>
 
-      <form action={sendEmail} style={{ display: "grid", gap: 12 }}>
-        {/* honeypot */}
-        <input
-          name="company"
-          tabIndex={-1}
-          autoComplete="off"
-          style={{ display: "none" }}
-        />
+    {sent && <p>Sent.</p>}
+    {error && <p>Invalid email or message.</p>}
 
-        <input name="email" placeholder="Your email" required />
-        <textarea name="message" placeholder="Message" rows={6} required />
-        <SubmitButton />
-      </form>
-    </div>
-  );
+    <form action={sendEmail} style={{ display: "grid", gap: 12 }}>
+      {/* honeypot */}
+      <input
+        name="company"
+        tabIndex={-1}
+        autoComplete="off"
+        style={{ display: "none" }}
+      />
+
+      <input name="email" placeholder="Your email" required />
+      <textarea name="message" placeholder="Message" rows={6} required />
+      <SubmitButton />
+    </form>
+  </div>
+);
 }
