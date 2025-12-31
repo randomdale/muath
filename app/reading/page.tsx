@@ -28,8 +28,8 @@ export default function ReadingPage() {
           }}
         >
           <Image
-            src="/books/lolita.jpg"
-            alt="Lolita book cover"
+            src="/books/chantsdemaldoror.jpg"
+            alt="Chants de Maldoror Book Cover"
             width={240}
             height={360}
             style={{ width: "100%", height: "auto", display: "block" }}
