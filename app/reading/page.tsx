@@ -39,9 +39,9 @@ export default function ReadingPage() {
 
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.2 }}>
-            Lolita
+            Maldoror
           </div>
-          <div style={{ marginTop: 6, opacity: 0.85 }}>Vladimir Nabokov</div>
+          <div style={{ marginTop: 6, opacity: 0.85 }}>Comte de Lautréamont</div>
 
           <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
             <span
