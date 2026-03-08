@@ -1,17 +1,12 @@
-import {defineConfig} from 'sanity'
-import {structureTool} from 'sanity/structure'
-import {schemaTypes} from './schemaTypes'
+import { defineConfig } from "sanity";
+import { deskTool } from "sanity/desk";
+import { schemaTypes } from "./schemaTypes";
 
 export default defineConfig({
-  name: 'default',
-  title: 'muath-blog',
-
-  projectId: 'rnvo8idh',
-  dataset: 'production',
-
-  tools: [structureTool()],
-
-  schema: {
-    types: schemaTypes,
-  },
-})
+  name: "default",
+  title: "muath-blog",
+  projectId: "rnv8idh", // or hardcode for now
+  dataset: "production",      // usually "production"
+  plugins: [deskTool()],
+  schema: { types: schemaTypes },
+});
