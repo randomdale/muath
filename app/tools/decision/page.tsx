@@ -356,8 +356,8 @@ export default function DecisionToolPage() {
     [right.kellyProbability, right.kellyMultiple]
   )
 
-  const leftScore = scoreSummary(leftEV, leftPosterior, leftKelly)
-  const rightScore = scoreSummary(rightEV, rightPosterior, rightKelly)
+  const leftScore = scoreSummary(leftEV, leftPosterior ?? 0, leftKelly ?? 0)
+  const rightScore = scoreSummary(rightEV, rightPosterior ?? 0, rightKelly ?? 0)
 
   const winner =
     leftScore === rightScore
