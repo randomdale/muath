@@ -9,7 +9,6 @@ type Outcome = {
 
 type DecisionOption = {
   label: string
-  category: string
   outcomes: Outcome[]
 }
 
@@ -24,29 +23,6 @@ function expectedValue(outcomes: Outcome[]) {
 
 function probabilityTotal(outcomes: Outcome[]) {
   return outcomes.reduce((total, outcome) => total + toNumber(outcome.probability), 0)
-}
-
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">{children}</label>
-}
-
-function TextInput({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: string
-  onChange: (next: string) => void
-  placeholder: string
-}) {
-  return (
-    <input
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder={placeholder}
-      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
-    />
-  )
 }
 
 function NumberInput({
@@ -64,8 +40,23 @@ function NumberInput({
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
       inputMode="decimal"
-      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
     />
+  )
+}
+
+function statusLabel(total: number) {
+  if (Math.abs(total - 1) < 0.001) return "Balanced"
+  if (total > 1) return "Above 1.00"
+  return "Below 1.00"
+}
+
+function SummaryMetric({ label, value, emphasize = false }: { label: string; value: string; emphasize?: boolean }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white/80 px-3 py-2.5">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+      <p className={`mt-1 ${emphasize ? "text-2xl font-bold text-slate-900" : "text-base font-semibold text-slate-800"}`}>{value}</p>
+    </div>
   )
 }
 
@@ -75,7 +66,7 @@ function DecisionCard({
   setOption,
   accent,
 }: {
-  title: string
+  title: "Option A" | "Option B"
   option: DecisionOption
   setOption: (next: DecisionOption) => void
   accent: string
@@ -97,40 +88,38 @@ function DecisionCard({
   }
 
   function removeScenario(index: number) {
+    if (index < 2 || option.outcomes.length <= 2) return
+
     setOption({
       ...option,
       outcomes: option.outcomes.filter((_, rowIndex) => rowIndex !== index),
     })
   }
 
-  const isProbabilitiesBalanced = Math.abs(total - 1) < 0.001
-
   return (
     <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Decision</p>
+          <h2 className="mt-1 text-2xl font-semibold text-slate-900">{title}</h2>
+        </div>
         <span className="rounded-full px-3 py-1 text-xs font-semibold text-slate-700" style={{ backgroundColor: accent }}>
-          EV = Σ (probability × payoff)
+          EV = Σ(probability × payoff)
         </span>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <FieldLabel>Decision label</FieldLabel>
-          <TextInput value={option.label} onChange={(next) => setOption({ ...option, label: next })} placeholder={title} />
-        </div>
-        <div>
-          <FieldLabel>Type</FieldLabel>
-          <TextInput
-            value={option.category}
-            onChange={(next) => setOption({ ...option, category: next })}
-            placeholder="Role, investment, project"
-          />
-        </div>
+      <div>
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">Editable label</label>
+        <input
+          value={option.label}
+          onChange={(event) => setOption({ ...option, label: event.target.value })}
+          placeholder={`Name for ${title.toLowerCase()}`}
+          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+        />
       </div>
 
-      <div className="mt-5 rounded-2xl border border-slate-200">
-        <div className="grid grid-cols-[110px_1fr_1fr_auto] bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200">
+        <div className="grid grid-cols-[112px_1fr_1fr_auto] bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
           <div>Scenario</div>
           <div>Probability</div>
           <div>Payoff</div>
@@ -138,33 +127,32 @@ function DecisionCard({
         </div>
 
         <div className="divide-y divide-slate-100">
-          {option.outcomes.map((row, index) => (
-            <div key={`${title}-scenario-${index + 1}`} className="grid grid-cols-[110px_1fr_1fr_auto] items-center gap-3 px-3 py-3">
-              <div className="text-sm font-medium text-slate-600">Scenario {index + 1}</div>
-              <NumberInput
-                value={row.probability}
-                onChange={(next) => updateOutcome(index, "probability", next)}
-                placeholder="0.50"
-              />
-              <NumberInput
-                value={row.payoff}
-                onChange={(next) => updateOutcome(index, "payoff", next)}
-                placeholder="90"
-              />
-              <button
-                type="button"
-                onClick={() => removeScenario(index)}
-                className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                disabled={option.outcomes.length <= 1}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
+          {option.outcomes.map((row, index) => {
+            const canRemove = index >= 2 && option.outcomes.length > 2
+            return (
+              <div key={`${title}-scenario-${index + 1}`} className="grid grid-cols-[112px_1fr_1fr_auto] items-center gap-3 px-3 py-3">
+                <div className="text-sm font-medium text-slate-600">Scenario {index + 1}</div>
+                <NumberInput
+                  value={row.probability}
+                  onChange={(next) => updateOutcome(index, "probability", next)}
+                  placeholder="Probability"
+                />
+                <NumberInput value={row.payoff} onChange={(next) => updateOutcome(index, "payoff", next)} placeholder="Payoff" />
+                <button
+                  type="button"
+                  onClick={() => removeScenario(index)}
+                  disabled={!canRemove}
+                  className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Remove
+                </button>
+              </div>
+            )
+          })}
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className="mt-4">
         <button
           type="button"
           onClick={addScenario}
@@ -175,17 +163,11 @@ function DecisionCard({
       </div>
 
       <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Result</p>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-slate-500">Expected Value</p>
-            <p className="mt-1 text-4xl font-bold text-slate-900">{ev.toFixed(2)}</p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide text-slate-500">Probability Sum</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-900">{total.toFixed(2)}</p>
-            <p className="mt-1 text-xs text-slate-600">{isProbabilitiesBalanced ? "Close to 1.00" : "Adjust toward 1.00"}</p>
-          </div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Summary</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <SummaryMetric label="Expected Value" value={ev.toFixed(2)} emphasize />
+          <SummaryMetric label="Probability Sum" value={total.toFixed(2)} />
+          <SummaryMetric label="Status" value={statusLabel(total)} />
         </div>
       </div>
     </section>
@@ -194,8 +176,7 @@ function DecisionCard({
 
 export default function DecisionToolPage() {
   const [leftOption, setLeftOption] = useState<DecisionOption>({
-    label: "Job A",
-    category: "Role",
+    label: "",
     outcomes: [
       { probability: "", payoff: "" },
       { probability: "", payoff: "" },
@@ -203,8 +184,7 @@ export default function DecisionToolPage() {
   })
 
   const [rightOption, setRightOption] = useState<DecisionOption>({
-    label: "Job B",
-    category: "Role",
+    label: "",
     outcomes: [
       { probability: "", payoff: "" },
       { probability: "", payoff: "" },
@@ -214,8 +194,8 @@ export default function DecisionToolPage() {
   const leftEV = useMemo(() => expectedValue(leftOption.outcomes), [leftOption.outcomes])
   const rightEV = useMemo(() => expectedValue(rightOption.outcomes), [rightOption.outcomes])
 
-  const leftName = leftOption.label || "Job A"
-  const rightName = rightOption.label || "Job B"
+  const leftName = leftOption.label.trim() || "Option A"
+  const rightName = rightOption.label.trim() || "Option B"
   const betterOption = leftEV === rightEV ? "Tie" : leftEV > rightEV ? leftName : rightName
   const difference = Math.abs(leftEV - rightEV)
   const maxEV = Math.max(leftEV, rightEV, 0)
@@ -225,67 +205,69 @@ export default function DecisionToolPage() {
   const isRightHigher = rightEV > leftEV
 
   return (
-    <main className="min-h-screen bg-slate-100 text-slate-900">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <header className="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <main className="min-h-screen bg-slate-100 py-10 text-slate-900 sm:py-14">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 sm:px-6 lg:px-8">
+        <header className="mx-auto w-full max-w-4xl rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm sm:p-8">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Decision Modeling Tool</h1>
-          <div className="mt-3 space-y-1 text-sm text-slate-600">
-            <p>Probability tells you how likely each scenario is.</p>
-            <p>Payoff is the outcome value for that scenario.</p>
-            <p>Expected value is the weighted average of all scenarios.</p>
-          </div>
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-600">Compare expected value across two options and see a live recommendation.</p>
         </header>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <DecisionCard title="Job A" option={leftOption} setOption={setLeftOption} accent="rgba(59,130,246,0.15)" />
-          <DecisionCard title="Job B" option={rightOption} setOption={setRightOption} accent="rgba(16,185,129,0.15)" />
-        </div>
+        <section className="grid items-stretch gap-6 lg:grid-cols-2">
+          <DecisionCard title="Option A" option={leftOption} setOption={setLeftOption} accent="rgba(59,130,246,0.16)" />
+          <DecisionCard title="Option B" option={rightOption} setOption={setRightOption} accent="rgba(16,185,129,0.18)" />
+        </section>
 
-        <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-2xl font-semibold tracking-tight">Conclusion</h2>
+        <section className="mx-auto w-full max-w-5xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-2xl font-semibold tracking-tight">Conclusion</h2>
+            <div className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-100">Live EV Summary</div>
+          </div>
 
-          <div className="mt-5 grid gap-4 lg:grid-cols-3">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 lg:col-span-2">
-              <p className="text-sm font-semibold text-slate-800">EV Comparison</p>
-              <div className="mt-4 space-y-4">
-                <div>
-                  <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="font-medium text-slate-700">{leftName}</span>
-                    <span className="font-semibold text-slate-900">{leftEV.toFixed(2)}</span>
-                  </div>
-                  <div className="h-3 overflow-hidden rounded-full bg-slate-200">
-                    <div
-                      className={`h-full rounded-full transition-all ${isLeftHigher ? "bg-blue-600" : "bg-blue-400"}`}
-                      style={{ width: `${leftBarWidth}%` }}
-                    />
-                  </div>
-                </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{leftName} EV</p>
+              <p className={`mt-1 text-2xl font-bold ${isLeftHigher ? "text-emerald-700" : "text-slate-900"}`}>{leftEV.toFixed(2)}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{rightName} EV</p>
+              <p className={`mt-1 text-2xl font-bold ${isRightHigher ? "text-emerald-700" : "text-slate-900"}`}>{rightEV.toFixed(2)}</p>
+            </div>
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Recommended option</p>
+              <p className="mt-1 text-lg font-bold text-emerald-800">{betterOption}</p>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">EV Lead</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">{difference.toFixed(2)}</p>
+            </div>
+          </div>
 
-                <div>
-                  <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="font-medium text-slate-700">{rightName}</span>
-                    <span className="font-semibold text-slate-900">{rightEV.toFixed(2)}</span>
-                  </div>
-                  <div className="h-3 overflow-hidden rounded-full bg-slate-200">
-                    <div
-                      className={`h-full rounded-full transition-all ${isRightHigher ? "bg-emerald-600" : "bg-emerald-400"}`}
-                      style={{ width: `${rightBarWidth}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="mb-3 flex items-center justify-between text-sm">
+              <span className={`font-semibold ${isLeftHigher ? "text-emerald-700" : "text-slate-700"}`}>{leftName}</span>
+              <span className="font-semibold text-slate-900">{leftEV.toFixed(2)}</span>
+            </div>
+            <div className="h-4 overflow-hidden rounded-full bg-slate-200">
+              <div
+                className={`h-full rounded-full transition-all ${isLeftHigher ? "bg-emerald-600" : "bg-slate-500"}`}
+                style={{ width: `${leftBarWidth}%` }}
+              />
             </div>
 
-            <div className="rounded-2xl border border-slate-900 bg-slate-900 p-4 text-white">
-              <p className="text-xs uppercase tracking-wide text-slate-300">Summary</p>
-              <p className="mt-3 text-sm text-slate-200">{leftName} EV: {leftEV.toFixed(2)}</p>
-              <p className="mt-1 text-sm text-slate-200">{rightName} EV: {rightEV.toFixed(2)}</p>
-              <p className="mt-4 text-xs uppercase tracking-wide text-slate-300">Recommended Option</p>
-              <p className="mt-1 text-3xl font-bold">{betterOption}</p>
-              <p className="mt-1 text-xs text-slate-300">
-                {leftEV === rightEV ? "Both options are equal on expected value." : `Leads by ${difference.toFixed(2)} EV points`}
-              </p>
+            <div className="mb-3 mt-5 flex items-center justify-between text-sm">
+              <span className={`font-semibold ${isRightHigher ? "text-emerald-700" : "text-slate-700"}`}>{rightName}</span>
+              <span className="font-semibold text-slate-900">{rightEV.toFixed(2)}</span>
             </div>
+            <div className="h-4 overflow-hidden rounded-full bg-slate-200">
+              <div
+                className={`h-full rounded-full transition-all ${isRightHigher ? "bg-emerald-600" : "bg-slate-500"}`}
+                style={{ width: `${rightBarWidth}%` }}
+              />
+            </div>
+
+            <p className="mt-5 text-center text-sm font-medium text-slate-700">
+              {leftEV === rightEV ? `${leftName} = ${rightName}` : `${leftEV > rightEV ? leftName : rightName} > ${leftEV > rightEV ? rightName : leftName}`}
+            </p>
           </div>
         </section>
       </div>
