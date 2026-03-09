@@ -2,17 +2,19 @@ import "./globals.css";
 import Link from "next/link";
 import MobileNav from "./components/MobileNav";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>
-        {/* Mobile */}
         <div className="mobileOnly">
           <MobileNav />
           <main className="mobileMain">{children}</main>
         </div>
 
-        {/* Desktop */}
         <div className="desktopOnly layout">
           <aside className="sidebar">
             <div className="sidebarBrand">
@@ -22,10 +24,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
 
             <nav className="sidebarNav">
-              <Link href="/" className="navLink">Home</Link>
-              <Link href="/writing" className="navLink">Writing</Link>
-              <Link href="/reading" className="navLink">Reading</Link>
-              <Link href="/contact" className="navLink">Contact</Link>
+              <Link href="/" className="navLink">
+                Home
+              </Link>
+              <Link href="/writing" className="navLink">
+                Writing
+              </Link>
+              <Link href="/tools/decision" className="navLink">
+                Decision Tool
+              </Link>
+              <Link href="/reading" className="navLink">
+                Reading
+              </Link>
+              <Link href="/contact" className="navLink">
+                Contact
+              </Link>
             </nav>
           </aside>
 

@@ -28,8 +28,8 @@ export default function ReadingPage() {
           }}
         >
           <Image
-            src="/books/chantsdemaldoror.jpg"
-            alt="Chants de Maldoror Book Cover"
+            src="/books/Selectivebreeding.jpg"
+            alt="Selective Breeding"
             width={240}
             height={360}
             style={{ width: "100%", height: "auto", display: "block" }}
@@ -39,9 +39,9 @@ export default function ReadingPage() {
 
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.2 }}>
-            Maldoror
+            Selective Breeding and the Birth of Philosophy
           </div>
-          <div style={{ marginTop: 6, opacity: 0.85 }}>Comte de Lautréamont</div>
+          <div style={{ marginTop: 6, opacity: 0.85 }}>Bronze Age Pervert</div>
 
           <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
             <span
@@ -49,7 +49,9 @@ export default function ReadingPage() {
                 fontSize: 12,
                 padding: "4px 10px",
                 borderRadius: 999,
-                border: "1px solid rgba(0,0,0,0.12)",
+                border: "1px solid rgba(255,126,0,0.35)",
+                background: "#FF7E00",
+                color: "#000000",
               }}
             >
               Currently reading

@@ -1,429 +1,429 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
+import React, { useMemo, useState } from "react";
 
-type Outcome = {
-  probability: string
-  payoff: string
+type ScenarioRow = {
+  scenario: string;
+  probability: string;
+  payoff: string;
+};
+
+type OptionCardModel = {
+  label: string;
+  scenarios: ScenarioRow[];
+};
+
+type OptionCardProps = {
+  optionKey: "A" | "B";
+  accentClass: string;
+  metricClass: string;
+  value: OptionCardModel;
+  onChange: (model: OptionCardModel) => void;
+};
+
+function toNum(val: string) {
+  const n = Number(val);
+  return Number.isFinite(n) ? n : 0;
 }
 
-type OptionModel = {
-  label: string
-  type: string
-  outcomes: Outcome[]
-  prior: string
-  evidenceGivenSuccess: string
-  evidenceGivenFailure: string
-  kellyProbability: string
-  kellyMultiple: string
+function calcEV(rows: ScenarioRow[]) {
+  return rows.reduce(
+    (sum, row) => sum + toNum(row.probability) * toNum(row.payoff),
+    0
+  );
 }
 
-function toNum(value: string) {
-  const n = Number(value)
-  return Number.isFinite(n) ? n : 0
+function calcProbSum(rows: ScenarioRow[]) {
+  return rows.reduce((sum, row) => sum + toNum(row.probability), 0);
 }
 
-function clamp01(n: number) {
-  if (n < 0) return 0
-  if (n > 1) return 1
-  return n
+function getStatus(probSum: number) {
+  if (probSum === 0) return "Empty";
+  if (Math.abs(probSum - 1) < 0.01) return "Balanced";
+  return "Needs adjusting";
 }
 
-function calcEV(outcomes: Outcome[]) {
-  return outcomes.reduce((sum, o) => {
-    return sum + toNum(o.probability) * toNum(o.payoff)
-  }, 0)
+function cx(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
 }
 
-function calcProbSum(outcomes: Outcome[]) {
-  return outcomes.reduce((sum, o) => sum + toNum(o.probability), 0)
-}
-
-function calcBayes(priorStr: string, likeSuccessStr: string, likeFailureStr: string) {
-  const prior = clamp01(toNum(priorStr))
-  const likeSuccess = clamp01(toNum(likeSuccessStr))
-  const likeFailure = clamp01(toNum(likeFailureStr))
-
-  const numerator = likeSuccess * prior
-  const denominator = numerator + likeFailure * (1 - prior)
-
-  if (denominator === 0) return null
-  return numerator / denominator
-}
-
-function calcKelly(probabilityStr: string, multipleStr: string) {
-  const p = clamp01(toNum(probabilityStr))
-  const b = toNum(multipleStr)
-  const q = 1 - p
-
-  if (b <= 0) return null
-  return ((p * b) - q) / b
-}
-
-function scoreSummary(ev: number, posterior: number | null, kelly: number | null) {
-  let score = 0
-
-  score += ev
-
-  if (posterior !== null) score += posterior * 100
-  if (kelly !== null) score += Math.max(0, kelly) * 50
-
-  return score
-}
-
-function ResultCard({
-  title,
-  value,
-  subtext,
-}: {
-  title: string
-  value: string
-  subtext?: string
-}) {
-  return (
-    <div className="rounded-2xl border border-black/10 bg-white/60 p-4">
-      <div className="text-sm text-black/55">{title}</div>
-      <div className="mt-1 text-2xl font-semibold tracking-tight">{value}</div>
-      {subtext ? <div className="mt-1 text-sm text-black/55">{subtext}</div> : null}
-    </div>
-  )
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-2xl font-semibold tracking-tight">{children}</h2>
-}
-
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <label className="mb-2 block text-sm font-medium text-black/70">{children}</label>
-}
-
-function Input({
+function CleanInput({
   value,
   onChange,
   placeholder,
+  type = "text",
+  className = "",
+  inputMode,
 }: {
-  value: string
-  onChange: (value: string) => void
-  placeholder: string
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+  type?: string;
+  className?: string;
+  inputMode?: "decimal" | "text" | "numeric";
 }) {
   return (
     <input
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full rounded-xl border border-black/15 bg-white/80 px-3 py-2 outline-none transition focus:border-black/30"
-      inputMode="decimal"
+      type={type}
+      inputMode={inputMode}
+      autoComplete="off"
+      spellCheck={false}
+      className={cx(
+        "h-9 w-full rounded-xl border border-neutral-200 bg-white px-3 text-[13px] text-neutral-800 outline-none transition",
+        "placeholder:text-neutral-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100/70",
+        className
+      )}
     />
-  )
+  );
 }
 
-function OptionPanel({
-  option,
-  setOption,
-  accent,
-}: {
-  option: OptionModel
-  setOption: (next: OptionModel) => void
-  accent: string
-}) {
-  const ev = useMemo(() => calcEV(option.outcomes), [option.outcomes])
-  const probSum = useMemo(() => calcProbSum(option.outcomes), [option.outcomes])
-  const posterior = useMemo(
-    () => calcBayes(option.prior, option.evidenceGivenSuccess, option.evidenceGivenFailure),
-    [option.prior, option.evidenceGivenSuccess, option.evidenceGivenFailure]
-  )
-  const kelly = useMemo(
-    () => calcKelly(option.kellyProbability, option.kellyMultiple),
-    [option.kellyProbability, option.kellyMultiple]
-  )
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+      {children}
+    </div>
+  );
+}
 
-  function updateOutcome(index: number, key: keyof Outcome, value: string) {
-    const nextOutcomes = [...option.outcomes]
-    nextOutcomes[index] = { ...nextOutcomes[index], [key]: value }
-    setOption({ ...option, outcomes: nextOutcomes })
+function MetricBox({
+  label,
+  value,
+  valueClassName = "",
+}: {
+  label: string;
+  value: string;
+  valueClassName?: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2.5">
+      <div className="text-[9px] font-medium uppercase tracking-[0.14em] text-neutral-500">
+        {label}
+      </div>
+      <div className={cx("mt-1.5 text-base font-bold tracking-tight", valueClassName)}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function ScenarioEditor({
+  rows,
+  onChange,
+}: {
+  rows: ScenarioRow[];
+  onChange: (rows: ScenarioRow[]) => void;
+}) {
+  function updateRow(index: number, field: keyof ScenarioRow, nextValue: string) {
+    onChange(
+      rows.map((row, i) => (i === index ? { ...row, [field]: nextValue } : row))
+    );
+  }
+
+  function addScenario() {
+    onChange([...rows, { scenario: "", probability: "", payoff: "" }]);
+  }
+
+  function removeScenario(index: number) {
+    if (rows.length <= 2) return;
+    onChange(rows.filter((_, i) => i !== index));
   }
 
   return (
-    <div className="rounded-3xl border border-black/10 bg-white/40 p-5 shadow-sm">
-      <div className="mb-5 flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <FieldLabel>Option label</FieldLabel>
-          <Input
-            value={option.label}
-            onChange={(value) => setOption({ ...option, label: value })}
-            placeholder="PwC Consulting"
-          />
-        </div>
-
-        <div className="min-w-[170px]">
-          <FieldLabel>Type</FieldLabel>
-          <Input
-            value={option.type}
-            onChange={(value) => setOption({ ...option, type: value })}
-            placeholder="Internship"
-          />
-        </div>
+    <div className="space-y-2">
+      <div className="hidden md:grid md:grid-cols-[minmax(0,1.8fr)_78px_92px_34px] md:gap-2 px-1">
+        <div className="text-[10px] font-medium text-neutral-500">Scenario</div>
+        <div className="text-[10px] font-medium text-center text-neutral-500">Probability</div>
+        <div className="text-[10px] font-medium text-center text-neutral-500">Payoff</div>
+        <div />
       </div>
 
-      <div className="mb-6">
-        <div className="mb-3 flex items-center justify-between">
-          <SectionLabel>Expected Value</SectionLabel>
+      {rows.map((row, i) => (
+        <div
+          key={i}
+          className="rounded-2xl border border-neutral-200 bg-neutral-50 p-2"
+        >
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1.8fr)_78px_92px_34px] md:items-center">
+            <CleanInput
+              value={row.scenario}
+              onChange={(v) => updateRow(i, "scenario", v)}
+              placeholder={
+                i === 0 ? "Upside" : i === 1 ? "Downside" : "Custom scenario"
+              }
+            />
+
+            <CleanInput
+              value={row.probability}
+              onChange={(v) => updateRow(i, "probability", v)}
+              inputMode="decimal"
+              placeholder="0.50"
+              className="text-center"
+            />
+
+            <CleanInput
+              value={row.payoff}
+              onChange={(v) => updateRow(i, "payoff", v)}
+              inputMode="decimal"
+              placeholder="75000"
+              className="text-center"
+            />
+
+            <button
+              type="button"
+              onClick={() => removeScenario(i)}
+              disabled={rows.length <= 2}
+              className="h-9 w-full rounded-xl border border-neutral-200 bg-white text-base font-bold text-neutral-500 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-35 md:w-8"
+              aria-label="Remove scenario"
+              title="Remove scenario"
+            >
+              −
+            </button>
+          </div>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={addScenario}
+        className="inline-flex h-9 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+      >
+        + Add scenario
+      </button>
+    </div>
+  );
+}
+
+function OptionCard({
+  optionKey,
+  accentClass,
+  metricClass,
+  value,
+  onChange,
+}: OptionCardProps) {
+  const ev = useMemo(() => calcEV(value.scenarios), [value.scenarios]);
+  const probSum = useMemo(() => calcProbSum(value.scenarios), [value.scenarios]);
+  const status = getStatus(probSum);
+
+  const statusClasses =
+    status === "Balanced"
+      ? "bg-green-100 text-green-800 border-green-200"
+      : status === "Needs adjusting"
+      ? "bg-amber-100 text-amber-800 border-amber-200"
+      : "bg-neutral-100 text-neutral-700 border-neutral-200";
+
+  return (
+    <section className="rounded-[24px] border border-neutral-200 bg-white p-4 shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+            Option {optionKey}
+          </div>
           <div
-            className="rounded-full px-3 py-1 text-xs font-medium"
-            style={{ backgroundColor: accent, color: "#111" }}
+            className={cx(
+              "mt-1 text-[1.8rem] font-bold leading-[1.2] tracking-tight truncate",
+              accentClass
+            )}
           >
-            Probabilities should total ~1.00
+            {value.label || `Decision ${optionKey}`}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 text-sm font-medium text-black/60">
-          <div>Probability</div>
-          <div>Payoff</div>
+        <div className={cx("rounded-full border px-3 py-1 text-[11px] font-semibold", statusClasses)}>
+          {status}
         </div>
+      </div>
 
-        <div className="mt-2 space-y-3">
-          {option.outcomes.map((outcome, i) => (
-            <div key={i} className="grid grid-cols-2 gap-3">
-              <Input
-                value={outcome.probability}
-                onChange={(value) => updateOutcome(i, "probability", value)}
-                placeholder={`Outcome ${i + 1} probability (e.g. 0.${5 - i})`}
-              />
-              <Input
-                value={outcome.payoff}
-                onChange={(value) => updateOutcome(i, "payoff", value)}
-                placeholder={`Outcome ${i + 1} payoff (e.g. ${90 - i * 30})`}
-              />
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <ResultCard
-            title="Expected value"
-            value={ev.toFixed(2)}
-            subtext="Average weighted payoff"
+      <div className="space-y-3">
+        <div className="space-y-1.5">
+          <SectionLabel>Decision label</SectionLabel>
+          <CleanInput
+            value={value.label}
+            onChange={(newLabel) => onChange({ ...value, label: newLabel })}
+            placeholder="Enter decision label"
+            className="font-medium"
           />
-          <ResultCard
-            title="Probability total"
+        </div>
+
+        <div className="space-y-1.5">
+          <SectionLabel>Scenario matrix</SectionLabel>
+          <ScenarioEditor
+            rows={value.scenarios}
+            onChange={(scenarios) => onChange({ ...value, scenarios })}
+          />
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <MetricBox
+            label="Expected value"
+            value={ev.toFixed(2)}
+            valueClassName={metricClass}
+          />
+          <MetricBox
+            label="Probability sum"
             value={probSum.toFixed(2)}
-            subtext={Math.abs(probSum - 1) < 0.001 ? "Good" : "Try to make this close to 1.00"}
+            valueClassName={
+              Math.abs(probSum - 1) < 0.01 ? "text-green-700" : "text-amber-700"
+            }
+          />
+          <MetricBox
+            label="Status"
+            value={status}
+            valueClassName="text-neutral-800 text-sm"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ResultCard({
+  leftEV,
+  rightEV,
+  leftLabel,
+  rightLabel,
+}: {
+  leftEV: number;
+  rightEV: number;
+  leftLabel: string;
+  rightLabel: string;
+}) {
+  const a = Number.isFinite(leftEV) ? leftEV : 0;
+  const b = Number.isFinite(rightEV) ? rightEV : 0;
+  const isTie = a === b;
+  const winner = isTie ? "Tie" : a > b ? leftLabel || "Option A" : rightLabel || "Option B";
+  const lead = Math.abs(a - b);
+
+  const total = Math.abs(a) + Math.abs(b);
+  const leftWidth = total === 0 ? 50 : (Math.abs(a) / total) * 100;
+  const rightWidth = total === 0 ? 50 : (Math.abs(b) / total) * 100;
+
+  return (
+    <section className="mx-auto w-full rounded-[24px] border border-blue-200 bg-white p-4 shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
+      <div className="text-center">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+          Result
+        </div>
+        <h2 className="mt-1 text-[1.7rem] font-bold leading-none tracking-tight text-neutral-900">
+          Comparison
+        </h2>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 items-center gap-3 md:grid-cols-[1fr_auto_1fr]">
+        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-center">
+          <div className="truncate text-sm text-neutral-500">{leftLabel || "Option A"}</div>
+          <div className="mt-1 text-2xl font-bold text-blue-700">{a.toFixed(2)}</div>
+        </div>
+
+        <div className="text-center text-sm font-semibold uppercase tracking-[0.16em] text-neutral-400">
+          vs
+        </div>
+
+        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-center">
+          <div className="truncate text-sm text-neutral-500">{rightLabel || "Option B"}</div>
+          <div className="mt-1 text-2xl font-bold text-emerald-700">{b.toFixed(2)}</div>
+        </div>
+      </div>
+
+      <div className="mt-4 overflow-hidden rounded-full border border-neutral-200 bg-neutral-100">
+        <div className="flex h-3.5 w-full">
+          <div
+            className={cx("transition-all duration-300", isTie ? "bg-neutral-400" : "bg-blue-600")}
+            style={{ width: `${leftWidth}%` }}
+          />
+          <div
+            className={cx("transition-all duration-300", isTie ? "bg-neutral-300" : "bg-emerald-600")}
+            style={{ width: `${rightWidth}%` }}
           />
         </div>
       </div>
 
-      <div className="mb-6">
-        <SectionLabel>Bayesian Update</SectionLabel>
-        <p className="mt-1 text-sm text-black/55">
-          Update your prior belief using new evidence.
-        </p>
-
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div>
-            <FieldLabel>Prior P(success)</FieldLabel>
-            <Input
-              value={option.prior}
-              onChange={(value) => setOption({ ...option, prior: value })}
-              placeholder="0.40"
-            />
-          </div>
-
-          <div>
-            <FieldLabel>P(evidence | success)</FieldLabel>
-            <Input
-              value={option.evidenceGivenSuccess}
-              onChange={(value) => setOption({ ...option, evidenceGivenSuccess: value })}
-              placeholder="0.70"
-            />
-          </div>
-
-          <div>
-            <FieldLabel>P(evidence | failure)</FieldLabel>
-            <Input
-              value={option.evidenceGivenFailure}
-              onChange={(value) => setOption({ ...option, evidenceGivenFailure: value })}
-              placeholder="0.30"
-            />
-          </div>
+      <div className="mt-4 flex flex-col items-center gap-2 text-center">
+        <div
+          className={cx(
+            "rounded-full px-4 py-1.5 text-sm font-semibold",
+            isTie
+              ? "bg-neutral-100 text-neutral-700"
+              : a > b
+              ? "bg-blue-100 text-blue-800"
+              : "bg-emerald-100 text-emerald-800"
+          )}
+        >
+          {isTie ? "It’s a tie" : `${winner} recommended`}
         </div>
+
+        <div className="text-sm text-neutral-600">
+          {isTie
+            ? "Both options produce the same expected value."
+            : `${winner} leads by ${lead.toFixed(2)}.`}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function DecisionEVOnlyPage() {
+  const [left, setLeft] = useState<OptionCardModel>({
+    label: "",
+    scenarios: [
+      { scenario: "", probability: "", payoff: "" },
+      { scenario: "", probability: "", payoff: "" },
+    ],
+  });
+
+  const [right, setRight] = useState<OptionCardModel>({
+    label: "",
+    scenarios: [
+      { scenario: "", probability: "", payoff: "" },
+      { scenario: "", probability: "", payoff: "" },
+    ],
+  });
+
+  const leftEV = useMemo(() => calcEV(left.scenarios), [left.scenarios]);
+  const rightEV = useMemo(() => calcEV(right.scenarios), [right.scenarios]);
+
+  return (
+    <div className="min-h-screen bg-transparent pb-6">
+      <main className="mx-auto w-full max-w-6xl px-5 py-4 md:px-5 md:py-1">
+        <header className="mx-auto max-w-2xl text-center">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+            Tools
+          </div>
+          <h1 className="mt-1.5 text-3xl font-extrabold tracking-tight text-black md:text-[2.5rem]">
+            Decision Modeling Tool
+          </h1>
+          <p className="mt-1.5 text-sm leading-6 text-neutral-600 md:text-[15px]">
+            Compare two options using expected value across different scenarios.
+          </p>
+        </header>
+
+        <section className="mt-5 grid grid-cols-1 gap-3 xl:grid-cols-2">
+          <OptionCard
+            optionKey="A"
+            accentClass="text-blue-800"
+            metricClass="text-blue-700"
+            value={left}
+            onChange={setLeft}
+          />
+          <OptionCard
+            optionKey="B"
+            accentClass="text-emerald-700"
+            metricClass="text-emerald-700"
+            value={right}
+            onChange={setRight}
+          />
+        </section>
 
         <div className="mt-4">
           <ResultCard
-            title="Posterior probability"
-            value={posterior === null ? "—" : `${(posterior * 100).toFixed(2)}%`}
-            subtext="Updated probability after evidence"
+            leftEV={leftEV}
+            rightEV={rightEV}
+            leftLabel={left.label || "Option A"}
+            rightLabel={right.label || "Option B"}
           />
         </div>
-      </div>
-
-      <div>
-        <SectionLabel>Kelly Criterion</SectionLabel>
-        <p className="mt-1 text-sm text-black/55">
-          Size the bet. In real life, use half-Kelly or quarter-Kelly.
-        </p>
-
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div>
-            <FieldLabel>Probability of success</FieldLabel>
-            <Input
-              value={option.kellyProbability}
-              onChange={(value) => setOption({ ...option, kellyProbability: value })}
-              placeholder="0.60"
-            />
-          </div>
-
-          <div>
-            <FieldLabel>Payoff multiple (b)</FieldLabel>
-            <Input
-              value={option.kellyMultiple}
-              onChange={(value) => setOption({ ...option, kellyMultiple: value })}
-              placeholder="1"
-            />
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <ResultCard
-            title="Full Kelly"
-            value={kelly === null ? "—" : kelly.toFixed(3)}
-            subtext="Theoretical maximum growth"
-          />
-          <ResultCard
-            title="Half Kelly"
-            value={kelly === null ? "—" : (kelly / 2).toFixed(3)}
-            subtext="More realistic"
-          />
-          <ResultCard
-            title="Quarter Kelly"
-            value={kelly === null ? "—" : (kelly / 4).toFixed(3)}
-            subtext="Safer"
-          />
-        </div>
-      </div>
+      </main>
     </div>
-  )
-}
-
-export default function DecisionToolPage() {
-  const [left, setLeft] = useState<OptionModel>({
-    label: "PwC Consulting",
-    type: "Internship",
-    outcomes: [
-      { probability: "0.50", payoff: "90" },
-      { probability: "0.30", payoff: "60" },
-      { probability: "0.20", payoff: "30" },
-    ],
-    prior: "0.40",
-    evidenceGivenSuccess: "0.70",
-    evidenceGivenFailure: "0.30",
-    kellyProbability: "0.54",
-    kellyMultiple: "1",
-  })
-
-  const [right, setRight] = useState<OptionModel>({
-    label: "Mastercard Consulting",
-    type: "Internship",
-    outcomes: [
-      { probability: "0.40", payoff: "85" },
-      { probability: "0.40", payoff: "55" },
-      { probability: "0.20", payoff: "35" },
-    ],
-    prior: "0.40",
-    evidenceGivenSuccess: "0.55",
-    evidenceGivenFailure: "0.45",
-    kellyProbability: "0.45",
-    kellyMultiple: "1",
-  })
-
-  const leftEV = useMemo(() => calcEV(left.outcomes), [left.outcomes])
-  const rightEV = useMemo(() => calcEV(right.outcomes), [right.outcomes])
-
-  const leftPosterior = useMemo(
-    () => calcBayes(left.prior, left.evidenceGivenSuccess, left.evidenceGivenFailure),
-    [left.prior, left.evidenceGivenSuccess, left.evidenceGivenFailure]
-  )
-  const rightPosterior = useMemo(
-    () => calcBayes(right.prior, right.evidenceGivenSuccess, right.evidenceGivenFailure),
-    [right.prior, right.evidenceGivenSuccess, right.evidenceGivenFailure]
-  )
-
-  const leftKelly = useMemo(
-    () => calcKelly(left.kellyProbability, left.kellyMultiple),
-    [left.kellyProbability, left.kellyMultiple]
-  )
-  const rightKelly = useMemo(
-    () => calcKelly(right.kellyProbability, right.kellyMultiple),
-    [right.kellyProbability, right.kellyMultiple]
-  )
-
-  const leftScore = scoreSummary(leftEV, leftPosterior, leftKelly)
-  const rightScore = scoreSummary(rightEV, rightPosterior, rightKelly)
-
-  const winner =
-    leftScore === rightScore
-      ? "Tie"
-      : leftScore > rightScore
-      ? left.label || "Left option"
-      : right.label || "Right option"
-
-  const winnerReason =
-    leftScore === rightScore
-      ? "Both options are roughly equal on the current inputs."
-      : leftScore > rightScore
-      ? `${left.label} leads on the combined decision score.`
-      : `${right.label} leads on the combined decision score.`
-
-  return (
-    <main className="min-h-screen bg-stone-100 text-black">
-      <div className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-10 grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-          <div>
-            <h1 className="text-5xl font-semibold tracking-tight">Decision Model Tool</h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-black/65">
-              Compare two options using expected value, Bayesian updating, and Kelly sizing.
-              Keep both options on the same payoff scale.
-            </p>
-
-            <div className="mt-6 rounded-3xl border border-black/10 bg-white/50 p-5">
-              <div className="text-sm font-medium text-black/55">Example</div>
-              <div className="mt-2 text-sm leading-7 text-black/70">
-                <div><span className="font-medium">Type:</span> Internship</div>
-                <div><span className="font-medium">Payoff scale:</span> 0–100 career value</div>
-                <div><span className="font-medium">PwC EV:</span> (0.50×90) + (0.30×60) + (0.20×30)</div>
-                <div><span className="font-medium">Prior:</span> 0.40</div>
-                <div><span className="font-medium">Bayes inputs:</span> 0.70 and 0.30</div>
-                <div><span className="font-medium">Kelly inputs:</span> p = 0.54, b = 1</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-black/10 bg-white/60 p-6 shadow-sm">
-            <div className="text-sm font-medium text-black/55">Conclusion</div>
-            <div className="mt-2 text-3xl font-semibold tracking-tight">{winner}</div>
-            <p className="mt-3 text-sm leading-6 text-black/65">{winnerReason}</p>
-
-            <div className="mt-6 grid gap-3">
-              <ResultCard title={left.label || "Left option"} value={leftScore.toFixed(2)} subtext="Composite score" />
-              <ResultCard title={right.label || "Right option"} value={rightScore.toFixed(2)} subtext="Composite score" />
-            </div>
-
-            <div className="mt-6 rounded-2xl bg-stone-100 p-4 text-sm leading-6 text-black/70">
-              Rule of thumb:
-              <br />
-              <span className="font-medium">Higher EV</span> = better average outcome
-              <br />
-              <span className="font-medium">Higher posterior</span> = stronger updated belief
-              <br />
-              <span className="font-medium">Higher Kelly</span> = stronger bet size
-            </div>
-          </div>
-        </div>
-
-        <div className="grid gap-6 xl:grid-cols-2">
-          <OptionPanel option={left} setOption={setLeft} accent="rgba(59,130,246,0.14)" />
-          <OptionPanel option={right} setOption={setRight} accent="rgba(16,185,129,0.14)" />
-        </div>
-      </div>
-    </main>
-  )
+  );
 }
