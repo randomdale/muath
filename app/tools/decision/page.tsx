@@ -102,7 +102,12 @@ function MetricBox({
       <div className="text-[9px] font-medium uppercase tracking-[0.14em] text-neutral-500">
         {label}
       </div>
-      <div className={cx("mt-1.5 text-base font-bold tracking-tight", valueClassName)}>
+      <div
+        className={cx(
+          "mt-1.5 text-base font-bold tracking-tight",
+          valueClassName
+        )}
+      >
         {value}
       </div>
     </div>
@@ -118,7 +123,9 @@ function ScenarioEditor({
 }) {
   function updateRow(index: number, field: keyof ScenarioRow, nextValue: string) {
     onChange(
-      rows.map((row, i) => (i === index ? { ...row, [field]: nextValue } : row))
+      rows.map((row, i) =>
+        i === index ? { ...row, [field]: nextValue } : row
+      )
     );
   }
 
@@ -131,28 +138,16 @@ function ScenarioEditor({
     onChange(rows.filter((_, i) => i !== index));
   }
 
-  function addScenario() {
-    setOption({
-      ...option,
-      outcomes: [...option.outcomes, { probability: "", payoff: "" }],
-    })
-  }
-
-  function removeScenario(index: number) {
-    if (index < 2 || option.outcomes.length <= 2) return
-
-    setOption({
-      ...option,
-      outcomes: option.outcomes.filter((_, rowIndex) => rowIndex !== index),
-    })
-  }
-
   return (
     <div className="space-y-2">
-      <div className="hidden md:grid md:grid-cols-[minmax(0,1.8fr)_78px_92px_34px] md:gap-2 px-1">
+      <div className="hidden px-1 md:grid md:grid-cols-[minmax(0,1.8fr)_78px_92px_34px] md:gap-2">
         <div className="text-[10px] font-medium text-neutral-500">Scenario</div>
-        <div className="text-[10px] font-medium text-center text-neutral-500">Probability</div>
-        <div className="text-[10px] font-medium text-center text-neutral-500">Payoff</div>
+        <div className="text-center text-[10px] font-medium text-neutral-500">
+          Probability
+        </div>
+        <div className="text-center text-[10px] font-medium text-neutral-500">
+          Payoff
+        </div>
         <div />
       </div>
 
@@ -224,10 +219,10 @@ function OptionCard({
 
   const statusClasses =
     status === "Balanced"
-      ? "bg-green-100 text-green-800 border-green-200"
+      ? "border-green-200 bg-green-100 text-green-800"
       : status === "Needs adjusting"
-      ? "bg-amber-100 text-amber-800 border-amber-200"
-      : "bg-neutral-100 text-neutral-700 border-neutral-200";
+      ? "border-amber-200 bg-amber-100 text-amber-800"
+      : "border-neutral-200 bg-neutral-100 text-neutral-700";
 
   return (
     <section className="rounded-[24px] border border-neutral-200 bg-white p-4 shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
@@ -246,7 +241,12 @@ function OptionCard({
           </div>
         </div>
 
-        <div className={cx("rounded-full border px-3 py-1 text-[11px] font-semibold", statusClasses)}>
+        <div
+          className={cx(
+            "rounded-full border px-3 py-1 text-[11px] font-semibold",
+            statusClasses
+          )}
+        >
           {status}
         </div>
       </div>
@@ -286,7 +286,7 @@ function OptionCard({
           <MetricBox
             label="Status"
             value={status}
-            valueClassName="text-neutral-800 text-sm"
+            valueClassName="text-sm text-neutral-800"
           />
         </div>
       </div>
@@ -308,7 +308,11 @@ function ResultCard({
   const a = Number.isFinite(leftEV) ? leftEV : 0;
   const b = Number.isFinite(rightEV) ? rightEV : 0;
   const isTie = a === b;
-  const winner = isTie ? "Tie" : a > b ? leftLabel || "Option A" : rightLabel || "Option B";
+  const winner = isTie
+    ? "Tie"
+    : a > b
+    ? leftLabel || "Option A"
+    : rightLabel || "Option B";
   const lead = Math.abs(a - b);
 
   const total = Math.abs(a) + Math.abs(b);
@@ -328,8 +332,12 @@ function ResultCard({
 
       <div className="mt-4 grid grid-cols-1 items-center gap-3 md:grid-cols-[1fr_auto_1fr]">
         <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-center">
-          <div className="truncate text-sm text-neutral-500">{leftLabel || "Option A"}</div>
-          <div className="mt-1 text-2xl font-bold text-blue-700">{a.toFixed(2)}</div>
+          <div className="truncate text-sm text-neutral-500">
+            {leftLabel || "Option A"}
+          </div>
+          <div className="mt-1 text-2xl font-bold text-blue-700">
+            {a.toFixed(2)}
+          </div>
         </div>
 
         <div className="text-center text-sm font-semibold uppercase tracking-[0.16em] text-neutral-400">
@@ -337,19 +345,29 @@ function ResultCard({
         </div>
 
         <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-center">
-          <div className="truncate text-sm text-neutral-500">{rightLabel || "Option B"}</div>
-          <div className="mt-1 text-2xl font-bold text-emerald-700">{b.toFixed(2)}</div>
+          <div className="truncate text-sm text-neutral-500">
+            {rightLabel || "Option B"}
+          </div>
+          <div className="mt-1 text-2xl font-bold text-emerald-700">
+            {b.toFixed(2)}
+          </div>
         </div>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-full border border-neutral-200 bg-neutral-100">
         <div className="flex h-3.5 w-full">
           <div
-            className={cx("transition-all duration-300", isTie ? "bg-neutral-400" : "bg-blue-600")}
+            className={cx(
+              "transition-all duration-300",
+              isTie ? "bg-neutral-400" : "bg-blue-600"
+            )}
             style={{ width: `${leftWidth}%` }}
           />
           <div
-            className={cx("transition-all duration-300", isTie ? "bg-neutral-300" : "bg-emerald-600")}
+            className={cx(
+              "transition-all duration-300",
+              isTie ? "bg-neutral-300" : "bg-emerald-600"
+            )}
             style={{ width: `${rightWidth}%` }}
           />
         </div>
@@ -406,11 +424,11 @@ export default function DecisionEVOnlyPage() {
           <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
             Tools
           </div>
-          <h1 className="mt-1.5 text-3xl font-extrabold tracking-tight text-black md:text-[2.5rem]">
-            Decision Modeling Tool
+          <h1 className="mt-1.5 text-3xl font-bold tracking-tight text-black md:text-[2.5rem]">
+            Decision Tool
           </h1>
           <p className="mt-1.5 text-sm leading-6 text-neutral-600 md:text-[15px]">
-            Compare two options using expected value across different scenarios.
+            compare two options using ev (expected value), dont make decisions based on <i>vibes.</i>
           </p>
         </header>
 
