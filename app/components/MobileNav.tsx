@@ -19,6 +19,7 @@ export default function MobileNav() {
         <div className="mobileMenu">
   <Link href="/" onClick={() => setOpen(false)}>Home</Link>
   <Link href="/writing" onClick={() => setOpen(false)}>Writing</Link>
+  <Link href="/tools/decision" onClick={() => setOpen(false)}>Decision Tool</Link>
   <Link href="/reading" onClick={() => setOpen(false)}>Reading</Link>
   <Link href="/contact" onClick={() => setOpen(false)}>Contact</Link>
 </div>
