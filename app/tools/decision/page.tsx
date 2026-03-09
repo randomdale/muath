@@ -65,7 +65,7 @@ function CleanInput({
   return (
     <input
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
       type={type}
       inputMode={inputMode}
@@ -129,6 +129,22 @@ function ScenarioEditor({
   function removeScenario(index: number) {
     if (rows.length <= 2) return;
     onChange(rows.filter((_, i) => i !== index));
+  }
+
+  function addScenario() {
+    setOption({
+      ...option,
+      outcomes: [...option.outcomes, { probability: "", payoff: "" }],
+    })
+  }
+
+  function removeScenario(index: number) {
+    if (index < 2 || option.outcomes.length <= 2) return
+
+    setOption({
+      ...option,
+      outcomes: option.outcomes.filter((_, rowIndex) => rowIndex !== index),
+    })
   }
 
   return (
